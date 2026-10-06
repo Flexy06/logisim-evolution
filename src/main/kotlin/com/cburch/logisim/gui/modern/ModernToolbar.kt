@@ -50,13 +50,16 @@ import androidx.compose.ui.unit.dp
 import com.cburch.draw.toolbar.Toolbar
 import com.cburch.draw.toolbar.ToolbarClickableItem
 import com.cburch.draw.toolbar.ToolbarItem
+import com.cburch.draw.toolbar.ToolbarModel
 import com.cburch.draw.toolbar.ToolbarSeparator
 import java.awt.BorderLayout
 import java.awt.Component
 import java.awt.Dimension
+import java.awt.Graphics
 import java.awt.RenderingHints
 import java.awt.image.BufferedImage
 import javax.swing.JPanel
+import javax.swing.SwingUtilities
 import kotlin.math.ceil
 import kotlin.math.max
 
@@ -109,6 +112,39 @@ class ModernToolbar(private val toolbar: Toolbar) : JPanel(BorderLayout()) {
     themeKey?.let { it.value++ }
   }
 
+  private var retryScheduled = false
+
+  /**
+   * Model queries can fail while the frame is still being constructed (the old Swing toolbar only
+   * asked lazily while painting). Treat failures as "not selected" and retry once the EDT is free.
+   */
+  private fun safeIsSelected(model: ToolbarModel, item: ToolbarItem): Boolean =
+      try {
+        model.isSelected(item)
+      } catch (e: RuntimeException) {
+        if (!retryScheduled) {
+          retryScheduled = true
+          SwingUtilities.invokeLater {
+            retryScheduled = false
+            refresh()
+          }
+        }
+        false
+      }
+
+  /** Old toolbar re-evaluated the selection on every repaint; keep that behaviour. */
+  override fun paint(g: Graphics) {
+    syncSelection()
+    super.paint(g)
+  }
+
+  private fun syncSelection() {
+    val model = toolbar.toolbarModel ?: return
+    val current = state.entries
+    if (current.none { safeIsSelected(model, it.item) != it.selected }) return
+    state.entries = current.map { it.copy(selected = safeIsSelected(model, it.item)) }
+  }
+
   /** Re-reads items, selection and orientation from the Swing toolbar. */
   fun refresh() {
     val model = toolbar.toolbarModel
@@ -122,7 +158,7 @@ class ModernToolbar(private val toolbar: Toolbar) : JPanel(BorderLayout()) {
             val dim = item.getDimension(orientation)
             ToolbarEntry(
                 item = item,
-                selected = model.isSelected(item),
+                selected = safeIsSelected(model, item),
                 width = dim.width,
                 height = dim.height,
                 separator = item is ToolbarSeparator,
