@@ -1034,6 +1034,10 @@ tasks {
     options.compilerArgs = compilerOptions
     dependsOn("genFiles")
   }
+  // Fork: Kotlin also reads the generated Java sources (BuildInfo), so generate them first
+  named("compileKotlin") {
+    dependsOn("genFiles")
+  }
   compileTestJava {
     options.encoding = "UTF-8"
     options.compilerArgs = compilerOptions
