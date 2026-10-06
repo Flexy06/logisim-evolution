@@ -49,6 +49,9 @@ public class Main {
         FlatMacLightLaf.installLafInfo();
         FlatMacDarkLaf.installLafInfo();
 
+        // Fork: custom FlatLaf defaults (rounded corners, accent color, slimmer scrollbars, ...)
+        // see src/main/resources/com/cburch/logisim/theme/FlatLaf.properties
+        com.formdev.flatlaf.FlatLaf.registerCustomDefaultsSource("com.cburch.logisim.theme");
         UIManager.setLookAndFeel(AppPreferences.LookAndFeel.get());
         AppPreferences.applyThemeColors();
 

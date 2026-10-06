@@ -24,7 +24,7 @@ import com.cburch.logisim.instance.StdAttr;
 import com.cburch.logisim.util.LocaleListener;
 import com.cburch.logisim.util.LocaleManager;
 import com.cburch.logisim.util.PropertyChangeWeakSupport;
-import com.formdev.flatlaf.FlatIntelliJLaf;
+import com.formdev.flatlaf.themes.FlatMacLightLaf;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
@@ -595,7 +595,7 @@ public class AppPreferences {
               Direction.EAST.toString()));
 
   public static final PrefMonitor<String> LookAndFeel =
-      create(new PrefMonitorString("LookAndFeel", FlatIntelliJLaf.class.getName()));
+      create(new PrefMonitorString("LookAndFeel", FlatMacLightLaf.class.getName()));
 
   public static final String EDITOR_THEME_DEFAULT = "default";
   public static final String EDITOR_THEME_DARK = "dark";

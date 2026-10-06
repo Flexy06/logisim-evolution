@@ -38,6 +38,7 @@ import com.cburch.logisim.gui.generic.RegTabContent;
 import com.cburch.logisim.gui.generic.ZoomControl;
 import com.cburch.logisim.gui.generic.ZoomModel;
 import com.cburch.logisim.gui.menu.MainMenuListener;
+import com.cburch.logisim.gui.modern.ModernUi;
 import com.cburch.logisim.prefs.AppPreferences;
 import com.cburch.logisim.proj.Project;
 import com.cburch.logisim.proj.ProjectActions;
@@ -189,7 +190,8 @@ public class Frame extends LFrame.MainWindow implements LocaleListener {
 
     var fontStyle = AppPreferences.getPreferredFontStyle(fontName);
     bottomTab.setFont(AppPreferences.getScaledFont(new Font(fontName, fontStyle, 9)));
-    bottomTab.add(attrTable = new AttrTable(this));
+    attrTable = new AttrTable(this);
+    bottomTab.add(ModernUi.isEnabled() ? ModernUi.createAttributePanel(this, attrTable) : attrTable);
     regTabContent = new RegTabContent(this);
     bottomTab.add(regTabContent);
 

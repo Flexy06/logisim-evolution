@@ -33,6 +33,8 @@ import java.awt.event.MouseWheelEvent;
 import java.util.ArrayList;
 import java.util.EventObject;
 import java.util.LinkedList;
+import java.util.List;
+import java.util.function.Consumer;
 import javax.swing.BorderFactory;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
@@ -66,6 +68,7 @@ public class AttrTable extends JPanel implements LocaleListener {
   private final TableModelAdapter tableModel;
   private final CellEditor editor = new CellEditor();
   private boolean titleEnabled;
+  private final List<Consumer<AttrTableModel>> modelChangeListeners = new ArrayList<>();
 
   public AttrTable(Window parent) {
     super(new BorderLayout());
@@ -213,6 +216,17 @@ public class AttrTable extends JPanel implements LocaleListener {
     if (editor != null) table.getCellEditor().cancelCellEditing();
     tableModel.setAttrTableModel(value == null ? NULL_ATTR_MODEL : value);
     updateTitle();
+    for (final var listener : new ArrayList<>(modelChangeListeners)) {
+      listener.accept(tableModel.attrModel);
+    }
+  }
+
+  /**
+   * Registers a callback that is invoked every time a new model is set. Used by the modern
+   * (Compose based) attribute panel to mirror this table.
+   */
+  public void addModelChangeListener(Consumer<AttrTableModel> listener) {
+    modelChangeListeners.add(listener);
   }
 
   public boolean isTitleEnabled() {

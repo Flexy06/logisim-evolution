@@ -23,10 +23,21 @@ plugins {
   application
   id("com.gradleup.shadow") version "9.6.1"
   id("org.sonarqube") version "7.5.0.8588"
+  // Fork: Kotlin + Compose Multiplatform (Desktop) for the modern UI layer
+  kotlin("jvm") version "2.4.20"
+  kotlin("plugin.compose") version "2.4.20"
+  id("org.jetbrains.compose") version "1.12.1"
 }
 
 repositories {
   mavenCentral()
+  google()
+}
+
+kotlin {
+  compilerOptions {
+    jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_21)
+  }
 }
 
 sonar {
@@ -55,6 +66,10 @@ dependencies {
   implementation("commons-cli:commons-cli:1.11.0")
   implementation("com.vladsch.flexmark:flexmark-all:0.64.8")
   implementation("org.apache.commons:commons-text:1.15.0")
+
+  // Fork: modern UI (Compose for Desktop, embedded into Swing via ComposePanel)
+  implementation(compose.desktop.currentOs)
+  implementation(compose.material3)
 
   // NOTE: Be aware of reported issues with Eclipse and Batik
   // See: https://github.com/logisim-evolution/logisim-evolution/issues/709
