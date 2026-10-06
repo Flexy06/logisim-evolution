@@ -9,6 +9,8 @@
 
 package com.cburch.draw.toolbar;
 
+import com.cburch.logisim.gui.modern.ModernToolbar;
+import com.cburch.logisim.gui.modern.ModernUi;
 import java.awt.BorderLayout;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -23,6 +25,8 @@ public class Toolbar extends JPanel {
   private ToolbarModel model;
   private Object orientation;
   private ToolbarButton curPressed;
+  // Fork: Compose based toolbar (null when the modern UI is disabled)
+  private final ModernToolbar modern;
 
   public Toolbar(ToolbarModel model) {
     super(new BorderLayout());
@@ -31,6 +35,7 @@ public class Toolbar extends JPanel {
     this.orientation = HORIZONTAL;
     this.myListener = new MyListener();
     this.curPressed = null;
+    this.modern = ModernUi.isEnabled() ? new ModernToolbar(this) : null;
 
     this.add(new JPanel(), BorderLayout.CENTER);
     setOrientation(HORIZONTAL);
@@ -41,6 +46,11 @@ public class Toolbar extends JPanel {
   }
 
   private void computeContents() {
+    if (modern != null) {
+      modern.refresh();
+      revalidate();
+      return;
+    }
     subpanel.removeAll();
     final var m = model;
     if (m != null) {
@@ -52,7 +62,7 @@ public class Toolbar extends JPanel {
     revalidate();
   }
 
-  Object getOrientation() {
+  public Object getOrientation() {
     return orientation;
   }
 
@@ -68,10 +78,16 @@ public class Toolbar extends JPanel {
     } else {
       throw new IllegalArgumentException();
     }
+    this.orientation = value;
+    if (modern != null) {
+      this.remove(modern);
+      this.add(modern, position);
+      modern.refresh();
+      return;
+    }
     this.remove(subpanel);
     subpanel.setLayout(new BoxLayout(subpanel, axis));
     this.add(subpanel, position);
-    this.orientation = value;
   }
 
   ToolbarButton getPressed() {
@@ -104,6 +120,7 @@ public class Toolbar extends JPanel {
   private class MyListener implements ToolbarModelListener, java.beans.PropertyChangeListener {
     @Override
     public void toolbarAppearanceChanged(ToolbarModelEvent event) {
+      if (modern != null) modern.refresh();
       repaint();
     }
 

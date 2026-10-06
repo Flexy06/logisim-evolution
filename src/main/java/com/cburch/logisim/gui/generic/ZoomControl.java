@@ -15,6 +15,8 @@ import com.cburch.contracts.BaseMouseListenerContract;
 import com.cburch.logisim.data.Bounds;
 import com.cburch.logisim.gui.icons.ZoomIcon;
 import com.cburch.logisim.gui.main.Canvas;
+import com.cburch.logisim.gui.modern.ModernUi;
+import com.cburch.logisim.gui.modern.ModernZoomBar;
 import com.cburch.logisim.prefs.AppPreferences;
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -57,6 +59,8 @@ public class ZoomControl extends JPanel {
   public final PredefinedZoomButton predefinedZoom3;
   private ZoomModel model;
   private SliderModel sliderModel;
+  // Fork: Compose based zoom bar (null when the modern UI is disabled)
+  private ModernZoomBar modern;
 
   public ZoomControl(ZoomModel model, Canvas canvas) {
     super(new BorderLayout());
@@ -97,6 +101,35 @@ public class ZoomControl extends JPanel {
     model.addPropertyChangeListener(ZoomModel.SHOW_GRID, grid);
     model.addPropertyChangeListener(ZoomModel.ZOOM, sliderModel);
     model.addPropertyChangeListener(ZoomModel.ZOOM, label);
+
+    if (ModernUi.isEnabled()) {
+      // keep all Swing parts alive (other code uses them), but show the Compose bar instead
+      removeAll();
+      modern = new ModernZoomBar(this);
+      add(modern, BorderLayout.CENTER);
+    }
+  }
+
+  /** Returns the zoom model currently controlled (may be null). */
+  public ZoomModel getZoomModel() {
+    return model;
+  }
+
+  /** Fits the current circuit into the visible area (same as the "Auto" button). */
+  public void autoZoom() {
+    zoomButton.actionPerformed(null);
+  }
+
+  /** True if auto zoom / predefined zoom buttons are currently enabled. */
+  public boolean isAutoZoomEnabled() {
+    return zoomButton.isEnabled();
+  }
+
+  /** Sets a fixed zoom factor (same as the predefined ×½ / ×1 / ×2 buttons). */
+  public void zoomToFactor(double factor) {
+    if (model != null && canvas.getProject().getCurrentCircuit() != null) {
+      model.setZoomFactor(factor);
+    }
   }
 
   private int nearestZoomOption() {
@@ -183,6 +216,7 @@ public class ZoomControl extends JPanel {
   public void setAutoZoomButtonEnabled(boolean val) {
     zoomButton.setEnabled(val);
     predefinedZoom1.setEnabled(val);
+    if (modern != null) modern.refresh();
   }
 
   public void setZoomModel(ZoomModel value) {
@@ -224,6 +258,7 @@ public class ZoomControl extends JPanel {
         value.addPropertyChangeListener(ZoomModel.ZOOM, label);
         label.setText(zoomString());
       }
+      if (modern != null) modern.bind(value);
     }
   }
 

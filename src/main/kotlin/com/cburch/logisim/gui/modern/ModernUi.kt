@@ -22,6 +22,14 @@ import javax.swing.JComponent
 object ModernUi {
   private const val PROPERTY = "logisim.modernUi"
 
+  init {
+    // Popups (dropdowns, tooltips) of small embedded ComposePanels would otherwise be clipped
+    // to the panel bounds -> render them as separate undecorated windows.
+    if (System.getProperty("compose.layers.type") == null) {
+      System.setProperty("compose.layers.type", "WINDOW")
+    }
+  }
+
   @JvmStatic
   fun isEnabled(): Boolean = System.getProperty(PROPERTY)?.toBooleanStrictOrNull() ?: true
 
